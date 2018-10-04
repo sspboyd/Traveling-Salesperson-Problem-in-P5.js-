@@ -1,5 +1,9 @@
+let vals = [0, 4,23,3,457];
+
+
+
 let cities = [];
-let totalCities = 7;
+let totalCities = 11;
 let shortestDistOrder = [];
 let shortestDist = Infinity;
 let shortestDistScores = [];
@@ -11,10 +15,48 @@ function setup() {
         let v = createVector(Math.random() * width, Math.random() * height);
         cities[i] = v;
     }
+
 }
 
 function draw() {
     background(0);
+    console.log(vals);
+    let largestI = -1;
+    for (var i = 0; i < vals.length - 1; i++) {
+        if (vals[i] < vals[i + 1]) {
+            largestI = i;
+        }
+    }
+
+    if (largestI === -1) {
+        noLoop();
+        console.log('finished');
+    }
+
+    // Lex ordering Step 2
+    let largestJ = -1;
+    for (var j = 0; j < vals.length; j++) {
+        if (vals[largestI] < vals[j]) {
+            largestJ = j;
+        }
+    }
+
+
+
+
+
+    // Lex ordering Step 3
+    swap(vals, largestI, largestJ);
+
+    let endArray = vals.splice(largestI + 1);
+    endArray.reverse();
+    vals = vals.concat(endArray);
+
+
+
+
+
+
     cities.forEach(function(c, index) {
         noStroke();
         fill(123);
@@ -31,7 +73,7 @@ function draw() {
     endShape();
 
     beginShape();
-    stroke(199,0,199);
+    stroke(199, 0, 199);
     strokeWeight(2);
     noFill();
     for (let i = 0, length1 = shortestDistOrder.length; i < length1; i++) {
@@ -50,10 +92,11 @@ function draw() {
     fill(123);
     noStroke();
     text("Current Shortest Distance: " + shortestDist, 10, 10);
-    text("Prev Best Scores: " + shortestDistScores, 10, 25);
+    text("Prev Best Scores: " + shortestDistScores, 10, 25, width - 10, height - 35);
 
     cities = randomizeArray(cities);
 }
+
 
 function randomizeArray(arr) {
     for (i = arr.length - 1; i > 0; i--) {
@@ -64,6 +107,15 @@ function randomizeArray(arr) {
     }
     return arr;
 }
+
+function swap(arr, i, j) {
+    let tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+    return arr;
+}
+
+
 
 function calcDist(arr) {
     let d = 0;
