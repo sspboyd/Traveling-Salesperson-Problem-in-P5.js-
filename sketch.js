@@ -28,31 +28,31 @@ let solPaneW, solPaneH;
 
 
 function setup() {
-    createCanvas(810, 810);
+    createCanvas(800, 800);
 
     for (i = 0; i < totalCities; i++) {
-        let v = createVector(Math.random() * (width*.9)+(width*0.05), map(Math.random(),0,1,100,height/3-11));
+        let v = createVector(Math.random() * (width * .9) + (width * 0.05), map(Math.random(), 0, 1, 100, height / 3 - 11));
         cities[i] = v;
         order[i] = i;
     }
 }
 
 function draw() {
-    background(0, 11, 18);
-    textSize(47);
-    fill(47, 199, 199,76);
+    background(0, 18, 29);
+    textSize(18);
+    fill(199, 199, 199, 199);
     noStroke();
-    text("The Travelling Salesperson Problem", 11, 47);
+    text("The Travelling Salesperson Problem", 11, 29);
     textSize(14);
-    fill(123, 199, 199,199);
-    text("What is the shortest possible route that visits each city?", 11, 76);
+    // fill(123, 199, 199,199);
+    text("What is the shortest possible route that visits each city?", 11, 47);
 
-    // Draw the 'city' locations
-    cities.forEach(function(c, index) {
-        noStroke();
+    let txtY = height / 3 * 2;
         fill(123);
-        ellipse(c.x, c.y, 10, 10);
-    });
+    let percentComplete = permCount / totalPerms * 100;
+    let s = percentComplete < 0.001 ? "> 0.01" : percentComplete.toFixed(2);
+text("Checking " + totalPerms + " different combinations. " + s + "% complete.", 11, 76);
+
 
     // draw new path attempts
     push();
@@ -94,35 +94,40 @@ function draw() {
     }
     endShape();
 
+    // Draw the 'city' locations
+    cities.forEach(function(c, index) {
+        strokeWeight(3);
+        stroke(199, 199);
+        noFill();
+        ellipse(c.x, c.y, 11, 11);
+    });
+
 
     fill(123);
     noStroke();
     textSize(14);
-    text("Current Shortest Distance: " + shortestDist, 10, 10);
+    text("Current Shortest Distance: " + shortestDist, 11, height / 3);
 
     // cities = randomizeArray(cities);
     for (let i = 0, length1 = order.length; i < length1; i++) {
         swap(cities, i, order[i]);
     }
 
-    let s = "order: ";
-    for (let i = 0; i < order.length; i++) {
-        s += order[i];
-    }
-    fill(123);
-    let percentComplete = permCount / totalPerms * 100;
-    s = percentComplete < 0.001 ? "> 0.01" : percentComplete.toFixed(2);
+    // let s = "order: ";
+    // for (let i = 0; i < order.length; i++) {
+    //     s += order[i];
+    // }
 
-    let txtY = height / 3 * 2;
-
-    text("Checking " + totalPerms + " different combinations. " + s + "% complete.", 10, txtY - 3);
     stroke(199);
     strokeWeight(0.5)
     line(0, txtY, width, txtY);
-    strokeWeight(2)
-    line(0, txtY, map(percentComplete, 0, 100, 0, width), txtY);
+    // strokeWeight(2)
+    // line(0, txtY, map(percentComplete, 0, 100, 0, width), txtY);
     permCount++;
     nextOrder();
+
+
+
 
     // loop through all bestSols
     // for each, in order, translate to new start pos, scale it and draw it
@@ -154,10 +159,6 @@ function draw() {
         }
         endShape();
         fill(199);
-        currOrder.forEach(function(elt) {
-            ellipse(elt.x, elt.y, 11, 11);
-        });
-        fill(199);
         textSize(48);
         noStroke();
         text(i + 1 + ") Dist: " + currDist, 7, height / 3 - 7);
@@ -166,13 +167,27 @@ function draw() {
         stroke(76, 123, 123);
         strokeWeight(1);
         rect(0, 0, width, height / 3);
+        fill(199, 199);
+        // stroke(199);
+        // strokeWeight(0.5);
+        // noFill();
+        currOrder.forEach(function(elt) {
+            ellipse(elt.x, elt.y, 7, 7);
+        });
         pop();
     }
+
 
     bestSolGraph();
 }
 
 function bestSolGraph() {
+    textSize(14);
+    noStroke();
+    text("" + maxDist + ": worst possible route found.", 11, height - height / 3 - height / 4 + 1 + textAscent());
+    stroke(199, 199);
+
+    line(0, height - height / 3 - height / 4, 11, height - height / 3 - height / 4);
     beginShape();
     noFill();
     strokeWeight(1);
@@ -180,17 +195,44 @@ function bestSolGraph() {
         let currDist = elt.dist;
         // console.log(elt);
         let currPermCount = elt.perm;
-        let cx = map(currPermCount, 0, totalPerms, 0, width);
+        // let cx = map(currPermCount, 0, totalPerms, 1, width);
+        let cx = map(currPermCount, 0, permCount, 1, width);
         let cy = map(currDist, 0, maxDist, 0, height / 4);
-        stroke(123, 199, 199);
-strokeWeight(.5);
+        let sClr = (currDist === shortestDist ? color(199, 0, 199) : color(123, 199, 199));
+        let sWgt = (currDist === shortestDist ? 1 : .5);
+        if (currDist === shortestDist) {
+            fill(199, 0, 199, 199);
+            textSize(14);
+            noStroke();
+            let tcx;
+            if (cx > width- textWidth(currDist) - 11) {
+                tcx = cx - textWidth(currDist) - 11;
+            } else {
+                tcx = cx + 11;
+            }
+            text(currDist, tcx, height - (height / 3) - cy + textAscent());
+        }
+        stroke(sClr);
+        strokeWeight(sWgt);
         line(cx, height - (height / 3), cx, height - (height / 3) - cy);
         stroke(199);
         strokeWeight(1);
+        noFill();
         vertex(cx, height - (height / 3) - cy);
         // // statements
     });
     endShape();
+
+    // render scale
+    let totalPermsDist = (width/permCount) * totalPerms;
+    for(let i=0; i<100; i+=5){
+        textSize(11);
+        let scaleX = map(i, 0,100,0,totalPermsDist);
+        let scaleY = height - (height / 3)+textAscent()+3;
+        fill(123,199);
+        noStroke();
+        text(""+i+"%", scaleX,scaleY);
+    }
 }
 
 function randomizeArray(arr) {
