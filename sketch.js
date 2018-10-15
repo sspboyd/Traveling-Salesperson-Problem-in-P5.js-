@@ -49,9 +49,13 @@ function setup() {
         let vecX = map(Math.random(), 0, 1, cBox.x1, cBox.x2);
         let vecY = map(Math.random(), 0, 1, cBox.y1, cBox.y2);
         let v = createVector(vecX, vecY);
-        cities[i] = v; // store the vector object in the cities array
-        order[i] = i; // store the index number in the order array (not sure this is needed right here)
+        cities.push(v); // store the vector object in the cities array
+        // cities[i] = v; // store the vector object in the cities array
+        order.push(i); // store the index number in the order array (not sure this is needed right here)
+        // order[i] = i; // store the index number in the order array (not sure this is needed right here)
     }
+    console.log("cities original order:");
+    console.log(cities);
 
     // Precalculate the distances between all the cities
     // Store the distances in a Map() object
@@ -59,17 +63,18 @@ function setup() {
     // if the x, y vals are 47.76 and 123.199 for the first city and 11.18 and 29.47 for the second city then the key is a string of "47123-1129"
     // the distance is just a number representing the cartesian distance between the two cities.
     // "47123-1129" : 134.7
-    for (let i = 0; i < cities.length; i++) {
-        let c1 = cities[i];
-        for (let j = i + 1; j < cities.length; j++) {
+    // for (let i = 0; i < cities.length; i++) {
+    //     let c1 = cities[i];
+    //     for (let j = i + 1; j < cities.length; j++) {
 
-            let c2 = cities[j];
-            let d = c1.dist(c2);
-            let keyLabel = getDistKey(c1, c2); // returns the distance key for these two strings
-            // ??????????????? why not using keyLabel var here?
-            distLookup.set(Math.floor(c1.x).toString() + Math.floor(c1.y).toString() + "-" + Math.floor(c2.x).toString() + Math.floor(c2.y).toString(), d);
-        }
-    }
+    //         let c2 = cities[j];
+    //         let d = c1.dist(c2);
+    //         let keyLabel = getDistKey(c1, c2); // returns the distance key for these two strings
+    //         // ??????????????? why not using keyLabel var here?
+    //         // distLookup.set(Math.floor(c1.x).toString() + Math.floor(c1.y).toString() + "-" + Math.floor(c2.x).toString() + Math.floor(c2.y).toString(), d);
+    //         distLookup.set(keyLabel, d);
+    //     }
+    // }
 
 }
 
@@ -78,6 +83,46 @@ function setup() {
 ////////////////////////////////////////////////////////////////////////////////
 function draw() {
     background(0, 18, 29);
+
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\npermutation: " + permCount);
+
+    //create a new copy of the cities array to re-order for this permutation
+    let newCityOrder = reOrderCities(order, cities);
+    console.log("newCityOrder:");
+    console.log(newCityOrder);
+
+
+    // update the cities vector array to match the updated order array
+    // let orderString = "Order for permutation " + permCount + ": \n";
+    // console.log("cities before swap:");
+    // console.log(cities);
+    // for (let i = 0; i < order.length; i++) {
+    //     swap(newCityOrder, i, order[i]);
+    //     orderString += order[i] + ", ";
+    // }
+    // console.log("newCityOrder after swap:");
+    // console.log(newCityOrder);
+    // console.log(orderString);
+
+
+
+    /*
+    Things we have
+    list of cities as a pvector array
+    a list of integers in an array that "links" to each city
+    [pv1, pv2, pv3, pv4]
+    [0,   1,   2,   3]
+
+    // Order of operations:
+    - show the current permutation
+    - get the route distance
+    - check/update current min distance
+    - add new bestSol object if new best route found
+    - all done with this ordering of cities
+    -create a new order of cities
+        - update the cities array to reflect the latest order
+        - if there are no more permutations to go through, then call it a day.
+    */
 
     //Title
     noStroke();
@@ -102,7 +147,8 @@ function draw() {
     // Calculate the length of the current path
     // console.log("cities pre calcDist:");
     // console.log(cities);
-    let currDist = calcDist(cities);
+    // let currDist = calcDist(cities);
+    let currDist = calcDist(newCityOrder);
     routeDistArr.push(currDist);
     // Test to see if new path is shorter than the current shortest path
     if (currDist < shortestDist) {
@@ -114,17 +160,17 @@ function draw() {
         // console.log(newBest.order);
 
         newBest.dist = shortestDist;
-        newBest.order = cities.slice(); // copies the array of the vectors representing this path
+        newBest.order = newCityOrder.slice(); // copies the array of the vectors representing this path
         newBest.perm = permCount; // which permutation was this found at?
         newBest.solIdx = ++solCount; // solution index number (not using this I don't think)
         bestSols.sols.push(newBest); // push it onto the array
-        console.log("Compare cities with newBest:");
-        console.log(cities);
-        console.log(newBest.order);
+        // console.log("Compare cities with newBest:");
+        // console.log(cities);
+        // console.log(newBest.order);
     }
 
     if (searching) { // if we're still searching, then
-        newRouteAttempt(); // Render the new route attempt to screen.
+        newRouteAttempt(newCityOrder); // Render the new route attempt to screen.
     }
 
     currShortestRoute(); // Render the current shortest route to screen
@@ -141,28 +187,19 @@ function draw() {
         noLoop();
         // print out the solution info:
         console.log("shortestDist: " + shortestDist);
-        console.log("currDist: " + currDist);
+        // console.log("currDist: " + currDist);
         console.log("bestSols.sols[i].dist:")
         for (let i = 0; i < bestSols.sols.length; i++) {
             console.log(bestSols.sols[i].dist);
         }
-        console.log("routeDistArr: ");
-        console.log(routeDistArr);
-
+        // console.log("routeDistArr: ");
+        // console.log(routeDistArr);
     }
 
-
-
-    // update the cities vector array to match the updated order array
-    let orderString = "Order for permutation " + permCount + ": \n";
-    for (let i = 0, length1 = order.length; i < length1; i++) {
-        swap(cities, i, order[i]);
-        orderString += order[i] + ", ";
-    }
-    console.log(orderString);
 
 
     nextLexOrder(); // get the next ordering of the cities
+
     permCount++; // increment the permuation count
 
 }
@@ -186,13 +223,13 @@ function currShortestRoute() {
 }
 
 // draw new route attempts
-function newRouteAttempt() {
+function newRouteAttempt(ncoArr) {
     noFill();
     stroke(255, 123);
     strokeWeight(.5);
     beginShape();
-    for (let i = 0, length1 = cities.length; i < length1; i++) {
-        vertex(cities[i].x, cities[i].y);
+    for (let i = 0, length1 = ncoArr.length; i < length1; i++) {
+        vertex(ncoArr[i].x, ncoArr[i].y);
     }
     endShape();
 }
@@ -203,17 +240,19 @@ function newRouteAttempt() {
 // calculate the distance between all the cities in the provided array
 function calcDist(arr) {
     let routeDist = 0;
-    // let routeDistVals = " ";
+    let routeDistVals = " ";
     let currDist;
     for (let i = 0; i < arr.length - 1; i++) {
-        let distKey = getDistKey(arr[i], arr[i + 1]);
-        currDist = distLookup.get(getDistKey(arr[i], arr[i + 1]));
+
+        currDist = arr[i].dist(arr[i + 1]);
+        // let distKey = getDistKey(arr[i], arr[i + 1]);
+        // currDist = distLookup.get(getDistKey(arr[i], arr[i + 1]));
         routeDist = routeDist + currDist;
         // console.log("currDist: " + currDist);
-        // routeDistVals += i.toString() + ":"+Math.floor(currDist).toString() + " + ";
+        routeDistVals += i.toString() + "-" + (i + 1).toString() + " : " + Math.floor(currDist).toString() + " + ";
     }
     // console.log("arr.length = " + arr.length);
-    // console.log("routeDistVals = " + routeDistVals + " = "+Math.floor(routeDist));
+    console.log("routeDistVals = " + routeDistVals + " = " + Math.floor(routeDist));
     return routeDist;
 }
 
@@ -248,7 +287,7 @@ function nextLexOrder() {
 
     // Step 1b
     if (largestI === -1) {
-        console.log('finished');
+        console.log('Finished');
         console.log("permCount: " + permCount);
         searching = false;
     }
@@ -276,4 +315,13 @@ function swap(arr, i, j) {
     arr[i] = arr[j];
     arr[j] = tmp;
     return arr;
+}
+
+function reOrderCities(oArr, cArr) {
+    let newOrderArr = [];
+    for (let i = 0; i < oArr.length; i++) {
+        let nextCity = cArr[oArr[i]];
+        newOrderArr.push(nextCity);
+    }
+    return newOrderArr;
 }
