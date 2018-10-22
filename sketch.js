@@ -3,7 +3,7 @@
 const PHI = 1.618033988749894848204586834;
 
 // Variables Common to All Algoritmic Approaches
-const totalCities = 9;
+const totalCities = 11;
 const cities = []; // array to hold p5.vector objects for city locations
 let order = []; // array matched with cities[] to identify the different cities and help with reordering
 const totalPerms = perms[totalCities - 1]; // look up the number of different permutations from perms[]
@@ -11,9 +11,10 @@ const lDims = {}; // layout Dimensions. An object to hold vars used for onscreen
 let distLookup = new Map(); // Map object to hold precalculated distances between cities.
 let maxDist = 0;
 let shortestDist = Infinity;
+let shortestDistOrder = []; // Genetic Algorithm
 let shortestDistScores = []; // list of the best route distances found
 let routeCount = 0; // number of new 'best' routes found;
-let permCount = 1; // counter to track permutations since beginning
+let permCount = 100; // counter to track permutations since beginning
 
 let bestRoutes = {
     routes: []
@@ -28,6 +29,11 @@ let bestRoutes = {
 
 // Brute Force Specific Variables
 let searching = true; // true if there are more permutations to check
+
+// Genetic Algorithm Specific Variables
+let population = [];
+let fitness = []; // make pop and fitness arrays into an object later with {pops:[{order: [0,1,2,3,4], fitness: 0.47}]
+let popSize = 1000000;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,12 +52,14 @@ function setup() {
     lDims.solGraphY2 = lDims.panesY1;
     lDims.solGraphY1 = lDims.currBestY2;
 
-    const cBox = {}; // Object holding dimensions for the cities to be located within.
+    // Object holding dimensions for the cities to be located within.
+    const cBox = {};
     cBox.x1 = 11;
     cBox.y1 = lDims.currBestY1;
     cBox.x2 = width - cBox.x1;
     cBox.y2 = lDims.currBestY2;
 
+    // Create city p5.vectors and set their locations
     for (let i = 0; i < totalCities; i++) {
         // let v = createVector(Math.random() * (width * .9) + (width * 0.05), map(Math.random(), 0, 1, 100, height / 3 - 11));
         let v = createVector(map(Math.random(), 0, 1, cBox.x1, cBox.x2), map(Math.random(), 0, 1, cBox.y1, cBox.y2));
@@ -59,7 +67,25 @@ function setup() {
         order[i] = i;
     }
 
+    // Calculate all the distances between each city
     distLookup = precalcCityDistances(cities);
+
+
+    // Genetic Algorithm
+    // there's going to be a lot of refactoring going on here.
+    for (let i = 0; i < popSize; i++) {
+        population[i] = cities.slice();
+        population[i] = fyShuffle(population[i]);
+    }
+    for (let i = 0; i < population.length; i++) {
+        let d = calcDist(population[i]);
+        if (d < shortestDist) {
+            shortestDist = d;
+            shortestDistOrder = population[i];
+        }
+        fitness[i] = d;
+    }
+
 }
 
 
@@ -69,44 +95,51 @@ function draw() {
 
     //Create a new array of cities in the current order for this permutation
     // Brute Force
-    let newCityOrder = reOrderCities(order, cities);
+    // let newCityOrder = reOrderCities(order, cities);
 
     // Random Checking
     // let newCityOrder = randomizeArray(cities);
 
-    let currDist = Math.floor(calcDist(newCityOrder));
+    // Random and Brute Force
+    // let currDist = Math.floor(calcDist(newCityOrder));
 
+    // Random and Brute Force
     // Test to see if new path is longer than the current longest path
-    if (currDist > maxDist) {
-        maxDist = currDist;
-    }
+    // if (currDist > maxDist) {
+    //     maxDist = currDist;
+    // }
 
+    // Random and Brute Force
     // Test to see if new path is shorter than the current shortest path
-    if (currDist < shortestDist) {
-        shortestDist = currDist;
-        // Create a new entry in the bestRoutes object
-        let newBest = {};
-        newBest.dist = shortestDist;
-        newBest.order = newCityOrder.slice();
-        newBest.perm = permCount;
-        newBest.routeIdx = ++routeCount;
-        bestRoutes.routes.push(newBest);
-    }
+    // if (currDist < shortestDist) {
+    //     shortestDist = currDist;
+    //     // Create a new entry in the bestRoutes object
+    //     let newBest = {};
+    //     newBest.dist = shortestDist;
+    //     newBest.order = newCityOrder.slice();
+    //     newBest.perm = permCount;
+    //     newBest.routeIdx = ++routeCount;
+    //     bestRoutes.routes.push(newBest);
+    // }
 
-    renderCurrShortestRoute();
-    renderBestRoutePanes();
-    renderBestRouteChart();
+    renderCurrShortestRoute(shortestDistOrder);
+    // Random and Brute Force
+    // renderCurrShortestRoute(bestRoutes.routes[bestRoutes.routes.length - 1].order);
+    // renderNewRouteAttempt(newCityOrder);
+
+    // renderBestRoutePanes();
+    // renderBestRouteChart();
+
     renderCities(cities);
     renderTitles();
-    renderNewRouteAttempt(newCityOrder);
 
     // Brute Force
-    if (searching) {
-        nextLexOrder(); // updates order[] to next Lexicographic Order for the cities
-    } else {
-        noLoop();
-    }
-    permCount++;
+    // if (searching) {
+    //     nextLexOrder(); // updates order[] to next Lexicographic Order for the cities
+    // } else {
+    //     noLoop();
+    // }
+    // permCount++;
 }
 
 
@@ -124,21 +157,21 @@ function renderTitles() {
     fill(199, 199);
 
     // Brute Force
-    let pctComplete = permCount / totalPerms * 100;
-    let s = pctComplete < 0.001 ? "> 0.01" : pctComplete.toFixed(2);
-    text("Checking " + totalPerms + " different combinations using brute force lexicographic ordering.\n" + s + "% complete.\n" + Math.floor(permCount / (millis() / 1000)) + " routes per second.", 11, lDims.currBestY1 - (textAscent() * 2) - 1);
+    // let pctComplete = permCount / totalPerms * 100;
+    // let s = pctComplete < 0.001 ? "> 0.01" : pctComplete.toFixed(2);
+    // Brute Force
+    // text("Checking " + totalPerms + " different combinations using brute force lexicographic ordering.\n" + s + "% complete.\n" + Math.floor(permCount / (millis() / 1000)) + " routes per second.", 11, lDims.currBestY1 - (textAscent() * 2) - 1);
 }
 
 
-function renderCurrShortestRoute() {
+function renderCurrShortestRoute(csrArr) {
     // Draw the current shortest path
-    let currBestOrder = bestRoutes.routes[bestRoutes.routes.length - 1].order;
     beginShape();
     stroke(199, 0, 199);
     strokeWeight(2);
     noFill();
-    for (let i = 0, length1 = currBestOrder.length; i < length1; i++) {
-        vertex(currBestOrder[i].x, currBestOrder[i].y);
+    for (let i = 0, length1 = csrArr.length; i < length1; i++) {
+        vertex(csrArr[i].x, csrArr[i].y);
     }
     endShape();
 }
@@ -294,6 +327,22 @@ function renderCities(cArr) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Genetic Algorithm
+/**
+ * Fisher–Yates Shuffle Algorithm
+ * From https://stackoverflow.com/a/6274381/610406
+ * Shuffles array in place
+ */
+function fyShuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Random Checking
 function randomizeArray(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -334,6 +383,8 @@ function getDistKey(a, b) {
     let dKey = distLookup.has(a + "-" + b) ? (a + "-" + b) : (b + "-" + a);
     return dKey;
 }
+
+
 
 
 // Brute Force
