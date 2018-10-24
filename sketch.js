@@ -3,7 +3,7 @@
 const PHI = 1.618033988749894848204586834;
 
 // Variables Common to All Algoritmic Approaches
-const totalCities = 29;
+const totalCities = 18;
 const cities = []; // array to hold p5.vector objects for city locations
 let order = []; // array matched with cities[] to identify the different cities and help with reordering
 const totalPerms = perms[totalCities - 1]; // look up the number of different permutations from perms[]
@@ -74,6 +74,14 @@ function setup() {
     // Calculate all the distances between each city
     distLookup = precalcCityDistances(cities);
 
+    // First route
+    let firstRoute = {};
+    firstRoute.dist = calcDist(cities);
+    firstRoute.order = cities;
+    firstRoute.perm = permCount;
+    setNewBestRoute(firstRoute);
+    shortestDist = firstRoute.dist;
+
     // Genetic Algorithm
     // Generate Populations
     genPop();
@@ -139,12 +147,6 @@ function draw() {
     // }
     permCount++;
 }
-
-function setNewBestRoute(nbrObj) { // new best route Object
-    nbrObj.routeIdx = ++routeCount; //
-    bestRoutes.routes.push(nbrObj);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 function renderTitles() {
@@ -339,11 +341,6 @@ function renderBestRouteChart() {
     }
 }
 
-function getNextOrdMagVal(n) {
-    // function from https://stackoverflow.com/a/23917134/610406
-    var order = Math.floor(Math.log(n) / Math.LN10 + 0.000000001); // because float math sucks like that
-    return Math.pow(10, order);
-}
 
 function renderCities(cArr) {
     // Render the 'city' locations
@@ -383,6 +380,15 @@ function randomizeArray(arr) {
     }
     return arr;
 }
+
+
+function setNewBestRoute(nbrObj) { // new best route Object
+    nbrObj.routeIdx = ++routeCount; //
+    bestRoutes.routes.push(nbrObj);
+}
+
+
+
 
 
 function swap(arr, i, j) {
@@ -488,6 +494,15 @@ function precalcCityDistances(citiesArr) {
 const numberWithCommas = (x) => {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+
+
+
+function getNextOrdMagVal(n) {
+    // function from https://stackoverflow.com/a/23917134/610406
+    var order = Math.floor(Math.log(n) / Math.LN10 + 0.000000001); // because float math sucks like that
+    return Math.pow(10, order);
+}
+
 
 
 // Exponential horizontal scale
