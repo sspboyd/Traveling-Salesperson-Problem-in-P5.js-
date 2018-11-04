@@ -1,6 +1,6 @@
 'use strict';
 
-const PHI = (1 + sqrt(5)) / 2;
+const PHI = (1 + Math.sqrt(5)) / 2;
 
 // Variables Common to All Algoritmic Approaches
 const totalCities = 18;
@@ -243,7 +243,7 @@ function renderBestRoutePanes() {
         // rect(0, 0, width, lDims.currBestY2 - lDims.currBestY1);
         rect(1, 1, width - 2, (lDims.currBestY2 - lDims.currBestY1) - 2);
         fill(199, 199);
-        currOrder.forEach(function (elt) {
+        currOrder.forEach(function(elt) {
             ellipse(elt.x, elt.y - lDims.currBestY1, 11, 11);
         });
         pop();
@@ -260,7 +260,7 @@ function renderBestRouteChart() {
     strokeWeight(1);
 
     //    let initScalePermCount = bestRoutes.routes[0].perm;
-    bestRoutes.routes.forEach(function (elt, index) {
+    bestRoutes.routes.forEach(function(elt, index) {
         let currDist = elt.dist;
         let currPermCount = elt.perm;
         // Random Checking
@@ -344,7 +344,7 @@ function renderBestRouteChart() {
 
 function renderCities(cArr) {
     // Render the 'city' locations
-    cArr.forEach(function (c, index) {
+    cArr.forEach(function(c, index) {
         strokeWeight(3);
         stroke(199, 199);
         noFill();
