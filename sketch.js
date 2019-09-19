@@ -3,7 +3,7 @@
 const PHI = (1 + Math.sqrt(5)) / 2;
 
 // Variables Common to All Algoritmic Approaches
-const totalCities = 18;
+const totalCities = 29;
 const cities = []; // array to hold p5.vector objects for city locations
 let order = []; // array matched with cities[] to identify the different cities and help with reordering
 const totalPerms = perms[totalCities - 1]; // look up the number of different permutations from perms[]
@@ -43,7 +43,9 @@ let mSwapRate = .0125; // 0 = zero swaps, 1 = totalCities number of swaps
 function setup() {
     // createCanvas(810, 810);
     // createCanvas(1650, 1000);
-    createCanvas(950, 900);
+    // createCanvas(1200, 800);
+    createCanvas(1400, 900);
+    // createCanvas(540, 540);
 
     // Set "lDims", layout dimensions
     // Top and bottom of the current best solution area
@@ -166,6 +168,8 @@ function renderTitles() {
     // let s = pctComplete < 0.001 ? "> 0.01" : pctComplete.toFixed(2);
     // Brute Force
     // text("Checking " + totalPerms + " different combinations using brute force lexicographic ordering.\n" + s + "% complete.\n" + Math.floor(permCount / (millis() / 1000)) + " routes per second.", 11, lDims.currBestY1 - (textAscent() * 2) - 1);
+    text(numberWithCommas(permCount) + " combinations tested at " + Math.floor(permCount / (millis() / 1000)) + " routes/second.\nMutation Rate of 0.0125% on a Generational Population Size of 2000.", 11, lDims.currBestY1 - (textAscent() * 2) - 1);
+    // text("Mutation Rate: 0.0125%. \nGenerational Population Size: 2000.", 11, lDims.currBestY1 - (textAscent() * 1) + 3);
 }
 
 
@@ -251,7 +255,7 @@ function renderBestRoutePanes() {
 }
 
 
-// Show graph of the best solutions found overtime.
+// Show graph of the best solutions found over time.
 // maximum x-axis is the current permutation number.
 function renderBestRouteChart() {
     let maxDist = bestRoutes.routes[0].dist; // poor form, but overriding the global maxDist here
@@ -337,7 +341,7 @@ function renderBestRouteChart() {
         // let scaleY = lDims.solGraphY2 + textAscent() + 3;
         fill(199, 199);
         noStroke();
-        text("" + i + "%", scaleX, scaleY);
+        // text("" + i + "%", scaleX, scaleY);
     }
 }
 
