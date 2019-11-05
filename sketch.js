@@ -1,3 +1,35 @@
+// Converting to Instance Mode
+// create list of global vars using Chrome Dev tools
+// This will be useful for making explicit which parts of the code are P5.js and which are native js.
+/*
+calcDist()
+calcFitness()
+fact()
+fyShuffle()
+genPop()
+getDistKey()
+height, width
+mSwapRate
+mutateSwap()
+nextGen()
+nextLexOrder()
+normFitness()
+popSize
+powMap()
+precalcCityDistances()
+randomizeArray()
+reOrderCities()
+renderBestRouteChart()
+renderBestRoutePanes()
+renderCities()
+renderCurrShortestRoute()
+renderNewRouteAttempt()
+renderTitles()
+setNewBestRoute()
+swap()
+totalCities
+*/
+
 'use strict';
 
 const PHI = (1 + Math.sqrt(5)) / 2;
