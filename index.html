@@ -1,28 +1,56 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<title>travelingSalesPerson</title>
-
+	<title>Using Genetic Algorithms to Solve the Travelling Salesperson Problem - Stephen Boyd, sspboyd.ca</title>
+	
+	<script type="text/javascript" src="libraries/dat.gui.js"></script>
 	<script src="libraries/p5.js"></script>
 	<script src="libraries/p5.dom.js"></script>
 	<script src="preCalcPermCount.js"></script>
+	<script src="geneticAlgorithm.js"></script>
 	<script src="sketch.js"></script>
+
 
 	<style>
 		body {
-			margin:0;
-			padding:0;
-			overflow: hidden;
+			/* overflow: hidden; */
+			background: rgb(0, 18, 29);
+			padding-left: 0;
+			padding-right: 0;
+			margin-left: auto;
+			margin-right: auto;
+			display: block;
+			width: 1400px;
 		}
+
 		canvas {
-			margin:auto;
+			margin: auto;
 		}
+		a{
+			color: rgb(255, 92, 241);
+		}
+		p{ color:antiquewhite;}
 	</style>
 </head>
+
 <body>
+
+<div id="nav"><p><< back to <a href="/index.html">sspboyd.ca</a></p></div>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-22771087-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-22771087-1');
+</script>
+
 </body>
+
 </html>
