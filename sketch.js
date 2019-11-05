@@ -3,7 +3,7 @@
 const PHI = (1 + Math.sqrt(5)) / 2;
 
 // Variables Common to All Algoritmic Approaches
-const totalCities = 29;
+window.totalCities = 47;
 const cities = []; // array to hold p5.vector objects for city locations
 let order = []; // array matched with cities[] to identify the different cities and help with reordering
 const totalPerms = perms[totalCities - 1]; // look up the number of different permutations from perms[]
@@ -35,9 +35,16 @@ let searching = true; // true if there are more permutations to check
 // Genetic Algorithm Specific Variables
 let population = [];
 let fitness = []; // make pop and fitness arrays into an object later with {pops:[{order: [0,1,2,3,4], fitness: 0.47}]
-let popSize = 2000;
-let mSwapRate = .0125; // 0 = zero swaps, 1 = totalCities number of swaps
+window.popSize = 4000;
+window.mSwapRate = .0125; // 0 = zero swaps, 1 = totalCities number of swaps
 
+// UI Component
+window.onload = function(){
+let gui = new dat.GUI();
+gui.add(this, "totalCities", 0, 199);
+gui.add(this, "popSize", 0, 10000,10);
+gui.add(this, "mSwapRate", 0,1,0.025);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 function setup() {
@@ -392,9 +399,6 @@ function setNewBestRoute(nbrObj) { // new best route Object
 }
 
 
-
-
-
 function swap(arr, i, j) {
     let tmp = arr[i];
     arr[i] = arr[j];
@@ -423,7 +427,6 @@ function getDistKey(a, b) {
     let dKey = distLookup.has(a + "-" + b) ? (a + "-" + b) : (b + "-" + a);
     return dKey;
 }
-
 
 
 
