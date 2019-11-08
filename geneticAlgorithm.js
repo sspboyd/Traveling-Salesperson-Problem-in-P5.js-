@@ -1,8 +1,8 @@
 // Generate Initial Population using shuffle
 function genPop() {
-    for (let i = 0; i < popSize; i++) {
-        population[i] = cities.slice();
-        population[i] = fyShuffle(population[i]);
+    for (let i = 0; i < p.popSize; i++) {
+        p.population[i] = p.cities.slice();
+        p.population[i] = fyShuffle(p.population[i]);
     }
 }
 
@@ -12,46 +12,44 @@ function genPop() {
 function calcFitness() {
     let currGenBestRoute = {};
     currGenBestRoute.dist = Infinity;
-    for (let i = 0; i < population.length; i++) {
-        let d = calcDist(population[i]);
-        fitness[i] = 1 / (pow(d, 3) + 1);
+    for (let i = 0; i < p.population.length; i++) {
+        let d = calcDist(p.population[i]);
+        p.fitness[i] = 1 / (p.pow(d, 3) + 1);
 
         if (d < currGenBestRoute.dist) {
             currGenBestRoute.dist = d;
-            currGenBestRoute.order = population[i];
-            currGenBestRoute.perm = permCount; // number of permutations to date to get to this
+            currGenBestRoute.order = p.population[i];
+            currGenBestRoute.perm = p.permCount; // number of permutations to date to get to this
             currGenShortestDistOrder = currGenBestRoute.order;
         }
-        permCount++;
+        p.permCount++;
     }
-    if (currGenBestRoute.dist < shortestDist) {
+    if (currGenBestRoute.dist < p.shortestDist) {
         setNewBestRoute(currGenBestRoute);
-        shortestDist = currGenBestRoute.dist;
-
+        p.shortestDist = currGenBestRoute.dist;
     }
-
 }
 
 
 function normFitness() {
     let sum = 0;
-    fitness.forEach(function(elt) {
+    p.fitness.forEach(function(elt) {
         sum += elt;
     });
-    for (let i = 0; i < fitness.length; i++) {
-        fitness[i] = fitness[i] / sum;
+    for (let i = 0; i < p.fitness.length; i++) {
+        p.fitness[i] = p.fitness[i] / sum;
     }
 }
 
 
 function nextGen() {
     let newPop = [];
-    for (let i = 0; i < population.length; i++) {
-        let order = pickOne(population, fitness); // order is a p5.vector array
-        mutateSwap(order, mSwapRate);
+    for (let i = 0; i < p.population.length; i++) {
+        let order = pickOne(p.population, p.fitness); // order is a p5.vector array
+        mutateSwap(order, p.mSwapRate);
         newPop[i] = order;
     }
-    population = newPop;
+    p.population = newPop;
 }
 
 
@@ -72,8 +70,8 @@ function mutateSwap(cArr, mRate) {
     let numSwaps = Math.ceil(mRate * cArr.length);
 
     for (let i = 0; i < numSwaps; i++) {
-        let indexA = Math.floor(random(cArr.length));
-        let indexB = Math.floor(random(cArr.length));
+        let indexA = Math.floor(p.random(cArr.length));
+        let indexB = Math.floor(p.random(cArr.length));
         swap(cArr, indexA, indexB);
     }
     return cArr;

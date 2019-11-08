@@ -28,268 +28,269 @@ renderTitles()
 setNewBestRoute()
 swap()
 totalCities
+
+Somethings to run down in the code
+what is the variable length1 all about? Why isn't it properly instanciated.
 */
 
 'use strict';
 
-const PHI = (1 + Math.sqrt(5)) / 2;
+const s = (sketch) => {
 
-// Variables Common to All Algoritmic Approaches
-window.totalCities = 47;
-const cities = []; // array to hold p5.vector objects for city locations
-let order = []; // array matched with cities[] to identify the different cities and help with reordering
-const totalPerms = perms[totalCities - 1]; // look up the number of different permutations from perms[]
-const lDims = {}; // layout Dimensions. An object to hold vars used for onscreen layout
-let distLookup = new Map(); // Map object to hold precalculated distances between cities.
-let maxDist = 0;
-let shortestDist = Infinity;
-let shortestDistOrder = []; // Genetic Algorithm
-let currGenShortestDistOrder = []; // Genetic Algorithm
-let shortestDistScores = []; // list of the best route distances found
-let routeCount = 0; // number of new 'best' routes found;
-let permCount = 0; // counter to track permutations since beginning
-let numPanesPerRow = 3; // initial # of solution panes per row. This changes as more solutions are found.
+    sketch.PHI = (1 + Math.sqrt(5)) / 2;
 
-let bestRoutes = {
-    routes: []
-    // Holds information about the best routes found to date...
-    // [{
-    //     permCount: 0,
-    //     dist: 1000,
-    //     order: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-    //     solNum: 0
-    // }]
-};
+    // Variables Common to All Algoritmic Approaches
+    sketch.totalCities = 47;
+    sketch.cities = []; // array to hold p5.vector objects for city locations
+    sketch.order = []; // array matched with cities[] to identify the different cities and help with reordering
+    sketch.totalPerms = perms[sketch.totalCities - 1]; // look up the number of different permutations from perms[]
+    sketch.lDims = {}; // layout Dimensions. An object to hold vars used for onscreen layout
+    sketch.distLookup = new Map(); // Map object to hold precalculated distances between cities.
+    sketch.maxDist = 0;
+    sketch.shortestDist = Infinity;
+    sketch.shortestDistOrder = []; // Genetic Algorithm
+    sketch.currGenShortestDistOrder = []; // Genetic Algorithm
+    sketch.shortestDistScores = []; // list of the best route distances found
+    sketch.routeCount = 0; // number of new 'best' routes found;
+    sketch.permCount = 0; // counter to track permutations since beginning
+    sketch.numPanesPerRow = 3; // initial # of solution panes per row. This changes as more solutions are found.
 
-// Brute Force Specific Variables
-let searching = true; // true if there are more permutations to check
+    sketch.bestRoutes = {
+        routes: []
+        // Holds information about the best routes found to date...
+        // [{
+        //     permCount: 0,
+        //     dist: 1000,
+        //     order: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        //     solNum: 0
+        // }]
+    };
 
-// Genetic Algorithm Specific Variables
-let population = [];
-let fitness = []; // make pop and fitness arrays into an object later with {pops:[{order: [0,1,2,3,4], fitness: 0.47}]
-window.popSize = 4000;
-window.mSwapRate = .0125; // 0 = zero swaps, 1 = totalCities number of swaps
+    // Brute Force Specific Variables
+    sketch.searching = true; // true if there are more permutations to check
 
-// UI Component
-window.onload = function(){
-let gui = new dat.GUI();
-gui.add(this, "totalCities", 0, 199);
-gui.add(this, "popSize", 0, 10000,10);
-gui.add(this, "mSwapRate", 0,1,0.025);
-}
+    // Genetic Algorithm Specific Variables
+    sketch.population = [];
+    sketch.fitness = []; // make pop and fitness arrays into an object later with {pops:[{order: [0,1,2,3,4], fitness: 0.47}]
+    sketch.popSize = 4000;
+    sketch.mSwapRate = .0125; // 0 = zero swaps, 1 = totalCities number of swaps
 
-////////////////////////////////////////////////////////////////////////////////
-function setup() {
-    // createCanvas(810, 810);
-    // createCanvas(1650, 1000);
-    // createCanvas(1200, 800);
-    createCanvas(1400, 900);
-    // createCanvas(540, 540);
 
-    // Set "lDims", layout dimensions
-    // Top and bottom of the current best solution area
-    lDims.currBestY1 = 100;
-    lDims.currBestY2 = height - (height / PHI);
-    // The top and bottom of the screen area where previous best routes are shown
-    lDims.panesY1 = height / PHI;
-    lDims.panesY2 = height;
-    // Top and bottom of the best routes graph area
-    lDims.solGraphY2 = lDims.panesY1;
-    lDims.solGraphY1 = lDims.currBestY2;
 
-    // Object holding dimensions for the cities to be located within.
-    const cBox = {};
-    cBox.x1 = 11;
-    cBox.y1 = lDims.currBestY1;
-    cBox.x2 = width - cBox.x1;
-    cBox.y2 = lDims.currBestY2;
+    ////////////////////////////////////////////////////////////////////////////////
+    sketch.setup = () => {
+        // createCanvas(810, 810);
+        // createCanvas(1650, 1000);
+        // createCanvas(1200, 800);
+        sketch.createCanvas(1400, 900);
+        // createCanvas(540, 540);
 
-    // Create city p5.vectors and set their locations
-    for (let i = 0; i < totalCities; i++) {
-        // let v = createVector(Math.random() * (width * .9) + (width * 0.05), map(Math.random(), 0, 1, 100, height / 3 - 11));
-        let v = createVector(map(Math.random(), 0, 1, cBox.x1, cBox.x2), map(Math.random(), 0, 1, cBox.y1, cBox.y2));
-        cities[i] = v;
-        order[i] = i;
+        // Set "lDims", layout dimensions
+        // Top and bottom of the current best solution area
+        sketch.lDims.currBestY1 = 100;
+        sketch.lDims.currBestY2 = sketch.height - (sketch.height / sketch.PHI);
+        // The top and bottom of the screen area where previous best routes are shown
+        sketch.lDims.panesY1 = sketch.height / sketch.PHI;
+        sketch.lDims.panesY2 = sketch.height;
+        // Top and bottom of the best routes graph area
+        sketch.lDims.solGraphY2 = sketch.lDims.panesY1;
+        sketch.lDims.solGraphY1 = sketch.lDims.currBestY2;
+
+        // Object holding dimensions for the cities to be located within.
+        sketch.cBox = {};
+        sketch.cBox.x1 = 11;
+        sketch.cBox.y1 = sketch.lDims.currBestY1;
+        sketch.cBox.x2 = sketch.width - sketch.cBox.x1;
+        sketch.cBox.y2 = sketch.lDims.currBestY2;
+
+        // Create city p5.vectors and set their locations
+        for (let i = 0; i < sketch.totalCities; i++) {
+            // let v = createVector(Math.random() * (width * .9) + (width * 0.05), map(Math.random(), 0, 1, 100, height / 3 - 11));
+            let v = sketch.createVector(sketch.map(Math.random(), 0, 1, sketch.cBox.x1, sketch.cBox.x2), sketch.map(Math.random(), 0, 1, sketch.cBox.y1, sketch.cBox.y2));
+            sketch.cities[i] = v;
+            sketch.order[i] = i;
+        }
+
+        // Calculate all the distances between each city
+        sketch.distLookup = precalcCityDistances(sketch.cities);
+
+        // First route
+        let firstRoute = {};
+        firstRoute.dist = calcDist(sketch.cities);
+        firstRoute.order = sketch.cities;
+        firstRoute.perm = sketch.permCount;
+        setNewBestRoute(firstRoute);
+        sketch.shortestDist = firstRoute.dist;
+
+        // Genetic Algorithm
+        // Generate Populations
+        genPop();
+
     }
 
-    // Calculate all the distances between each city
-    distLookup = precalcCityDistances(cities);
+    ////////////////////////////////////////////////////////////////////////////////
+    sketch.draw = () => {
+        sketch.background(0, 18, 29);
 
-    // First route
-    let firstRoute = {};
-    firstRoute.dist = calcDist(cities);
-    firstRoute.order = cities;
-    firstRoute.perm = permCount;
-    setNewBestRoute(firstRoute);
-    shortestDist = firstRoute.dist;
+        // Genetic Algorithm
+        // there's going to be a lot of refactoring going on here.
+        // Calculate Fitness
+        calcFitness();
+        // Normalize Fitness
+        normFitness();
+        nextGen();
 
-    // Genetic Algorithm
-    // Generate Populations
-    genPop();
+        //Create a new array of cities in the current order for this permutation
+        // Brute Force
+        // let newCityOrder = reOrderCities(order, cities);
 
+        // Random Checking
+        // let newCityOrder = randomizeArray(cities);
+
+        // Random and Brute Force
+        // let currDist = Math.floor(calcDist(newCityOrder));
+
+        // Random and Brute Force
+        // Test to see if new path is longer than the current longest path
+        // if (currDist > maxDist) {
+        //     maxDist = currDist;
+        // }
+
+        // Random and Brute Force
+        // Test to see if new path is shorter than the current shortest path
+        // if (currDist < shortestDist) {
+        //     shortestDist = currDist;
+        //     // Create a new entry in the bestRoutes object
+        //     let newBest = {};
+        //     newBest.dist = shortestDist;
+        //     newBest.order = newCityOrder.slice();
+        //     newBest.perm = permCount;
+        //     setNewBestRoute(newBest)
+        // }
+
+        // renderCurrShortestRoute(shortestDistOrder);
+        // Random and Brute Force
+        renderCurrShortestRoute(sketch.bestRoutes.routes[sketch.bestRoutes.routes.length - 1].order);
+        renderNewRouteAttempt(currGenShortestDistOrder);
+
+        renderBestRoutePanes();
+        renderBestRouteChart();
+
+        renderCities(sketch.cities);
+        renderTitles();
+
+        // Brute Force
+        // if (searching) {
+        //     nextLexOrder(); // updates order[] to next Lexicographic Order for the cities
+        // } else {
+        //     noLoop();
+        // }
+        sketch.permCount++;
+    }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-function draw() {
-    background(0, 18, 29);
-
-    // Genetic Algorithm
-    // there's going to be a lot of refactoring going on here.
-    // Calculate Fitness
-    calcFitness();
-    // Normalize Fitness
-    normFitness();
-    nextGen();
-
-    //Create a new array of cities in the current order for this permutation
-    // Brute Force
-    // let newCityOrder = reOrderCities(order, cities);
-
-    // Random Checking
-    // let newCityOrder = randomizeArray(cities);
-
-    // Random and Brute Force
-    // let currDist = Math.floor(calcDist(newCityOrder));
-
-    // Random and Brute Force
-    // Test to see if new path is longer than the current longest path
-    // if (currDist > maxDist) {
-    //     maxDist = currDist;
-    // }
-
-    // Random and Brute Force
-    // Test to see if new path is shorter than the current shortest path
-    // if (currDist < shortestDist) {
-    //     shortestDist = currDist;
-    //     // Create a new entry in the bestRoutes object
-    //     let newBest = {};
-    //     newBest.dist = shortestDist;
-    //     newBest.order = newCityOrder.slice();
-    //     newBest.perm = permCount;
-    //     setNewBestRoute(newBest)
-    // }
-
-    // renderCurrShortestRoute(shortestDistOrder);
-    // Random and Brute Force
-    renderCurrShortestRoute(bestRoutes.routes[bestRoutes.routes.length - 1].order);
-    renderNewRouteAttempt(currGenShortestDistOrder);
-
-    renderBestRoutePanes();
-    renderBestRouteChart();
-
-    renderCities(cities);
-    renderTitles();
-
-    // Brute Force
-    // if (searching) {
-    //     nextLexOrder(); // updates order[] to next Lexicographic Order for the cities
-    // } else {
-    //     noLoop();
-    // }
-    permCount++;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 function renderTitles() {
     //Title
-    noStroke();
-    fill(199);
-    textSize(18);
-    text("The Travelling Salesperson Problem", 11, 29);
-    textSize(14);
-    text("What is the shortest possible route that visits each city?", 11, 47);
+    p.noStroke();
+    p.fill(199);
+    p.textSize(18);
+    p.text("The Travelling Salesperson Problem", 11, 29);
+    p.textSize(14);
+    p.text("What is the shortest possible route that visits each city?", 11, 47);
 
-    let txtY = height / 3 * 2;
-    fill(199, 199);
+    let txtY = p.height / 3 * 2;
+    p.fill(199, 199);
 
     // Brute Force
     // let pctComplete = permCount / totalPerms * 100;
     // let s = pctComplete < 0.001 ? "> 0.01" : pctComplete.toFixed(2);
     // Brute Force
     // text("Checking " + totalPerms + " different combinations using brute force lexicographic ordering.\n" + s + "% complete.\n" + Math.floor(permCount / (millis() / 1000)) + " routes per second.", 11, lDims.currBestY1 - (textAscent() * 2) - 1);
-    text(numberWithCommas(permCount) + " combinations tested at " + Math.floor(permCount / (millis() / 1000)) + " routes/second.\nMutation Rate of 0.0125% on a Generational Population Size of 2000.", 11, lDims.currBestY1 - (textAscent() * 2) - 1);
+    p.text(numberWithCommas(p.permCount) + " combinations tested at " + Math.floor(p.permCount / (p.millis() / 1000)) + " routes/second.\nMutation Rate of 0.0125% on a Generational Population Size of 2000.", 11, p.lDims.currBestY1 - (p.textAscent() * 2) - 1);
     // text("Mutation Rate: 0.0125%. \nGenerational Population Size: 2000.", 11, lDims.currBestY1 - (textAscent() * 1) + 3);
 }
 
 
 function renderCurrShortestRoute(csrArr) {
     // Draw the current shortest path
-    beginShape();
-    stroke(199, 0, 199);
-    strokeWeight(2);
-    noFill();
+    p.beginShape();
+    p.stroke(199, 0, 199);
+    p.strokeWeight(2);
+    p.noFill();
     for (let i = 0, length1 = csrArr.length; i < length1; i++) {
-        vertex(csrArr[i].x, csrArr[i].y);
+        p.vertex(csrArr[i].x, csrArr[i].y);
     }
-    endShape();
+    p.endShape();
 }
 
 
 function renderNewRouteAttempt(ncoArr) {
     // draw new path attempts
-    noFill();
-    stroke(255, 123);
-    strokeWeight(.5);
-    beginShape();
+    p.noFill();
+    p.stroke(255, 123);
+    p.strokeWeight(.5);
+    p.beginShape();
     for (let i = 0, length1 = ncoArr.length; i < length1; i++) {
-        vertex(ncoArr[i].x, ncoArr[i].y);
+        p.vertex(ncoArr[i].x, ncoArr[i].y);
     }
-    endShape();
+    p.endShape();
 }
 
 
 function renderBestRoutePanes() {
-    let solPaneW = width / numPanesPerRow;
-    let solPaneH = (lDims.panesY2 - lDims.panesY1) / numPanesPerRow;
+    let solPaneW = p.width / p.numPanesPerRow;
+    let solPaneH = (p.lDims.panesY2 - p.lDims.panesY1) / p.numPanesPerRow;
 
-    if (((bestRoutes.routes.length - 1) / numPanesPerRow * solPaneH) > (lDims.panesY2 - lDims.panesY1)) {
-        numPanesPerRow++;
+    if (((p.bestRoutes.routes.length - 1) / p.numPanesPerRow * solPaneH) > (p.lDims.panesY2 - p.lDims.panesY1)) {
+        p.numPanesPerRow++;
     }
     // solPaneH = (height / width) * solPaneW / numPanesPerRow; // Why "3"?
-    let solPaneScaleX = solPaneW / width;
-    let solPaneScaleY = solPaneH / (lDims.currBestY2 - lDims.currBestY1);
+    let solPaneScaleX = solPaneW / p.width;
+    let solPaneScaleY = solPaneH / (p.lDims.currBestY2 - p.lDims.currBestY1);
     let solPaneScale = (solPaneScaleX < solPaneScaleY) ? solPaneScaleX : solPaneScaleY;
 
-    for (let i = 0; i < bestRoutes.routes.length - 1; i++) {
-        let currSol = bestRoutes.routes[i];
+    for (let i = 0; i < p.bestRoutes.routes.length - 1; i++) {
+        let currSol = p.bestRoutes.routes[i];
         let currOrder = currSol.order;
         let currDist = currSol.dist;
 
-        let x = (i % numPanesPerRow) * solPaneW;
-        let y = lDims.panesY1 + (Math.floor(i / numPanesPerRow) * solPaneH);
+        let x = (i % p.numPanesPerRow) * solPaneW;
+        let y = p.lDims.panesY1 + (Math.floor(i / p.numPanesPerRow) * solPaneH);
         // let y = lDims.panesY2 - (Math.floor(i / numPanesPerRow) * solPaneH) - solPaneH;
 
-        push();
-        translate(x, y);
-        scale(solPaneScale);
+        p.push();
+        p.translate(x, y);
+        p.scale(solPaneScale);
         // scale(solPaneScaleX, solPaneScaleY);
-        beginShape();
-        stroke(76, 199, 199, 123);
-        strokeWeight(3);
-        noFill();
+        p.beginShape();
+        p.stroke(76, 199, 199, 123);
+        p.strokeWeight(3);
+        p.noFill();
         for (let i = 0, length1 = currOrder.length; i < length1; i++) {
-            vertex(currOrder[i].x, currOrder[i].y - lDims.currBestY1);
+            p.vertex(currOrder[i].x, currOrder[i].y - p.lDims.currBestY1);
         }
-        endShape();
+        p.endShape();
 
 
-        fill(199, 199);
-        textSize(47);
-        noStroke();
-        text(Math.floor(currDist), 11, lDims.currBestY1);
+        p.fill(199, 199);
+        p.textSize(47);
+        p.noStroke();
+        p.text(Math.floor(currDist), 11, p.lDims.currBestY1);
         // text(currDist, 7, lDims.currBestY2 - lDims.currBestY1 - 7);
         // Draw cities
-        noFill();
-        stroke(47, 123, 199, 199);
-        strokeWeight(.5);
+        p.noFill();
+        p.stroke(47, 123, 199, 199);
+        p.strokeWeight(.5);
         // rectMode(CORNER);
         // rect(0, 0, width, lDims.currBestY2 - lDims.currBestY1);
-        rect(1, 1, width - 2, (lDims.currBestY2 - lDims.currBestY1) - 2);
-        fill(199, 199);
-        currOrder.forEach(function(elt) {
-            ellipse(elt.x, elt.y - lDims.currBestY1, 11, 11);
+        p.rect(1, 1, p.width - 2, (p.lDims.currBestY2 - p.lDims.currBestY1) - 2);
+        p.fill(199, 199);
+        currOrder.forEach(function (elt) {
+            p.ellipse(elt.x, elt.y - p.lDims.currBestY1, 11, 11);
         });
-        pop();
+        p.pop();
     }
 }
 
@@ -297,13 +298,13 @@ function renderBestRoutePanes() {
 // Show graph of the best solutions found over time.
 // maximum x-axis is the current permutation number.
 function renderBestRouteChart() {
-    let maxDist = bestRoutes.routes[0].dist; // poor form, but overriding the global maxDist here
-    beginShape();
-    noFill();
-    strokeWeight(1);
+    let maxDist = p.bestRoutes.routes[0].dist; // poor form, but overriding the global maxDist here
+    p.beginShape();
+    p.noFill();
+    p.strokeWeight(1);
 
     //    let initScalePermCount = bestRoutes.routes[0].perm;
-    bestRoutes.routes.forEach(function(elt, index) {
+    p.bestRoutes.routes.forEach(function (elt, index) {
         let currDist = elt.dist;
         let currPermCount = elt.perm;
         // Random Checking
@@ -311,50 +312,50 @@ function renderBestRouteChart() {
         // Brute Force
         // let cx = map(currPermCount, 0, permCount, 1, width); // linear
         //        let cx = powMap(currPermCount, 1 / Math.E, initScalePermCount, permCount, 1, width); // exponential
-        let cx = powMap(currPermCount, 1 / Math.E, 0, permCount, 1, width); // exponential
+        let cx = powMap(currPermCount, 1 / Math.E, 0, p.permCount, 1, p.width); // exponential
 
         // let cy = map(currDist, 0, maxDist, 0, height / 4);
-        let cy = map(currDist, 0, maxDist, lDims.solGraphY2 - textAscent(), lDims.solGraphY1);
-        if (currDist === shortestDist) {
-            fill(199, 0, 199, 199);
-            textSize(14);
-            noStroke();
+        let cy = p.map(currDist, 0, maxDist, p.lDims.solGraphY2 - p.textAscent(), p.lDims.solGraphY1);
+        if (currDist === p.shortestDist) {
+            p.fill(199, 0, 199, 199);
+            p.textSize(14);
+            p.noStroke();
             let tcx;
-            if (cx > width - textWidth(Math.floor(currDist)) - 11 - 11) {
-                tcx = cx - textWidth(Math.floor(currDist)) - 11;
+            if (cx > p.width - p.textWidth(Math.floor(currDist)) - 11 - 11) {
+                tcx = cx - p.textWidth(Math.floor(currDist)) - 11;
             } else {
                 tcx = cx + 11;
             }
-            text(Math.floor(currDist), tcx, cy + textAscent());
+            p.text(Math.floor(currDist), tcx, cy + p.textAscent());
             // text(currDist, tcx, height - (height / 3) - cy + textAscent());
         }
-        let sClr = (currDist === shortestDist ? color(199, 0, 199) : color(123, 199, 199));
-        let sWgt = (currDist === shortestDist ? 2.5 : .5);
-        stroke(sClr);
-        strokeWeight(sWgt);
-        line(cx, lDims.solGraphY2 - textAscent(), cx, cy);
+        let sClr = (currDist === p.shortestDist ? p.color(199, 0, 199) : p.color(123, 199, 199));
+        let sWgt = (currDist === p.shortestDist ? 2.5 : .5);
+        p.stroke(sClr);
+        p.strokeWeight(sWgt);
+        p.line(cx, p.lDims.solGraphY2 - p.textAscent(), cx, cy);
         // line(cx, height - (height / 3), cx, height - (height / 3) - cy);
 
-        strokeWeight(1);
-        noFill();
-        stroke(123, 199, 199);
-        vertex(cx, cy);
+        p.strokeWeight(1);
+        p.noFill();
+        p.stroke(123, 199, 199);
+        p.vertex(cx, cy);
         // vertex(cx, height - (height / 3) - cy);
     });
-    endShape();
+    p.endShape();
 
 
-    let xScaleVal = permCount;
+    let xScaleVal = p.permCount;
     while (xScaleVal > 1) {
         xScaleVal = getNextOrdMagVal(xScaleVal);
-        let scaleX = powMap(xScaleVal, 1 / Math.E, 0, permCount, 1, width); // exponential
-        let scaleY = lDims.solGraphY2 - textAscent();
-        stroke(199, 199);
-        strokeWeight(1);
-        point(scaleX, scaleY);
-        fill(123);
-        noStroke();
-        text(numberWithCommas(xScaleVal), scaleX, scaleY);
+        let scaleX = powMap(xScaleVal, 1 / Math.E, 0, p.permCount, 1, p.width); // exponential
+        let scaleY = p.lDims.solGraphY2 - p.textAscent();
+        p.stroke(199, 199);
+        p.strokeWeight(1);
+        p.point(scaleX, scaleY);
+        p.fill(123);
+        p.noStroke();
+        p.text(numberWithCommas(xScaleVal), scaleX, scaleY);
 
         xScaleVal = xScaleVal - 1;
     }
@@ -364,7 +365,7 @@ function renderBestRouteChart() {
 
     // render (linear) scale
     // Brute Force - these next two loops
-    let totalPermsDist = (width / permCount) * totalPerms; // why is this here?? max length of the scale (even beyond edge of canvas)
+    let totalPermsDist = (p.width / p.permCount) * p.totalPerms; // why is this here?? max length of the scale (even beyond edge of canvas)
     // for (let i = 0; i < 100; i += 1) {
     //     let scaleX = map(i, 0, 100, 0, totalPermsDist);
 
@@ -374,12 +375,12 @@ function renderBestRouteChart() {
     //     point(scaleX, scaleY);
     // }
     for (let i = 0; i < 100; i += 5) {
-        textSize(11);
-        let scaleX = map(i, 0, 100, 0, totalPermsDist);
-        let scaleY = lDims.solGraphY2;
+        p.textSize(11);
+        let scaleX = p.map(i, 0, 100, 0, totalPermsDist);
+        let scaleY = p.lDims.solGraphY2;
         // let scaleY = lDims.solGraphY2 + textAscent() + 3;
-        fill(199, 199);
-        noStroke();
+        p.fill(199, 199);
+        p.noStroke();
         // text("" + i + "%", scaleX, scaleY);
     }
 }
@@ -387,11 +388,11 @@ function renderBestRouteChart() {
 
 function renderCities(cArr) {
     // Render the 'city' locations
-    cArr.forEach(function(c, index) {
-        strokeWeight(3);
-        stroke(199, 199);
-        noFill();
-        ellipse(c.x, c.y, 11, 11);
+    cArr.forEach(function (c, index) {
+        p.strokeWeight(3);
+        p.stroke(199, 199);
+        p.noFill();
+        p.ellipse(c.x, c.y, 11, 11);
     });
 }
 
@@ -426,8 +427,8 @@ function randomizeArray(arr) {
 
 
 function setNewBestRoute(nbrObj) { // new best route Object
-    nbrObj.routeIdx = ++routeCount; //
-    bestRoutes.routes.push(nbrObj);
+    nbrObj.routeIdx = ++p.routeCount; //
+    p.bestRoutes.routes.push(nbrObj);
 }
 
 
@@ -446,7 +447,7 @@ function calcDist(arr) {
         // let distKey = "" + Math.floor(arr[i].x).toString() + Math.floor(arr[i].y).toString() + Math.floor(arr[i + 1].x).toString() + Math.floor(arr[i + 1].y).toString();
         let distKey = getDistKey(arr[i], arr[i + 1]);
         // console.log("distLookup has this key? " + distKey + ": " + distLookup.has(distKey));
-        d += distLookup.get(getDistKey(arr[i], arr[i + 1]));
+        d += p.distLookup.get(getDistKey(arr[i], arr[i + 1]));
     }
     return d;
 }
@@ -456,7 +457,7 @@ function getDistKey(a, b) {
     a = Math.floor(a.x).toString() + Math.floor(a.y).toString();
     b = Math.floor(b.x).toString() + Math.floor(b.y).toString();
 
-    let dKey = distLookup.has(a + "-" + b) ? (a + "-" + b) : (b + "-" + a);
+    let dKey = p.distLookup.has(a + "-" + b) ? (a + "-" + b) : (b + "-" + a);
     return dKey;
 }
 
@@ -547,9 +548,9 @@ function getNextOrdMagVal(n) {
 // Exponential horizontal scale
 function powMap(incr, base, start1, stop1, start2, stop2) {
     // base should be an inverse (eg 1/2), start1/stop1 are the value range, start2/stop2 are the output range
-    let normX = map(incr, start1, stop1, 0, 1);
-    let newX = pow(normX, base);
-    return map(newX, 0, 1, start2, stop2);
+    let normX = p.map(incr, start1, stop1, 0, 1);
+    let newX = p.pow(normX, base);
+    return p.map(newX, 0, 1, start2, stop2);
 
 
 
@@ -569,4 +570,16 @@ function fact(num) {
         f = f * i;
     }
     return f;
+}
+
+
+
+let p = new p5(s);
+
+// UI Component
+window.onload = function () {
+    let gui = new dat.GUI();
+    gui.add(p, "totalCities", 0, 199);
+    gui.add(p, "popSize", 0, 10000, 10);
+    gui.add(p, "mSwapRate", 0, 1, 0.025);
 }
