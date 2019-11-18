@@ -12,17 +12,17 @@ function genPop() {
 function calcFitness() {
     let currGenBestRoute = {};
     currGenBestRoute.dist = Infinity;
-    for (let i = 0; i < p.population.length; i++) {
+    for (let i = 0; i < p.population.length; i++) { // using a for loop here bc need an index to match with fitness[]
         let d = calcDist(p.population[i]);
         p.fitness[i] = 1 / (p.pow(d, 3) + 1);
 
         if (d < currGenBestRoute.dist) {
-            currGenBestRoute.dist = d;
+            currGenBestRoute.dist = d; // change these variable declarations to an object property assignment thing.
             currGenBestRoute.order = p.population[i];
             currGenBestRoute.perm = p.permCount; // number of permutations to date to get to this
-            currGenShortestDistOrder = currGenBestRoute.order;
+            p.currGenShortestDistOrder = currGenBestRoute.order;
         }
-        p.permCount++;
+        p.permCount++; // possible optimization here of moving this line outside of for loop and doing permCount += p.population.length
     }
     if (currGenBestRoute.dist < p.shortestDist) {
         setNewBestRoute(currGenBestRoute);
@@ -33,7 +33,7 @@ function calcFitness() {
 
 function normFitness() {
     let sum = 0;
-    p.fitness.forEach(function(elt) {
+    p.fitness.forEach(function(elt) { // keeping forEach instead of map() bc forEach is faster.
         sum += elt;
     });
     for (let i = 0; i < p.fitness.length; i++) {
@@ -45,9 +45,9 @@ function normFitness() {
 function nextGen() {
     let newPop = [];
     for (let i = 0; i < p.population.length; i++) {
-        let order = pickOne(p.population, p.fitness); // order is a p5.vector array
-        mutateSwap(order, p.mSwapRate);
-        newPop[i] = order;
+        let newOrder = pickOne(p.population, p.fitness); // order is a p5.vector array. What's relationship between population and fitness array again?()
+        mutateSwap(newOrder, p.mSwapRate);
+        newPop[i] = newOrder;
     }
     p.population = newPop;
 }

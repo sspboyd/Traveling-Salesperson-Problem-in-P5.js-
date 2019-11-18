@@ -1,46 +1,21 @@
 // Converting to Instance Mode
-// create list of global vars using Chrome Dev tools
-// This will be useful for making explicit which parts of the code are P5.js and which are native js.
 /*
-calcDist()
-calcFitness()
-fact()
-fyShuffle()
-genPop()
-getDistKey()
-height, width
-mSwapRate
-mutateSwap()
-nextGen()
-nextLexOrder()
-normFitness()
-popSize
-powMap()
-precalcCityDistances()
-randomizeArray()
-reOrderCities()
-renderBestRouteChart()
-renderBestRoutePanes()
-renderCities()
-renderCurrShortestRoute()
-renderNewRouteAttempt()
-renderTitles()
-setNewBestRoute()
-swap()
-totalCities
-
 Somethings to run down in the code
 what is the variable length1 all about? Why isn't it properly instanciated.
 */
 
+/*global p5, dat, window, console, genPop, nextGen, perms, calcFitness, normFitness, */
+
 'use strict';
 
 const s = (sketch) => {
-
     sketch.PHI = (1 + Math.sqrt(5)) / 2;
 
+    sketch.play = true;
+    sketch.reset = false;
+
     // Variables Common to All Algoritmic Approaches
-    sketch.totalCities = 47;
+    sketch.totalCities = 29;
     sketch.cities = []; // array to hold p5.vector objects for city locations
     sketch.order = []; // array matched with cities[] to identify the different cities and help with reordering
     sketch.totalPerms = perms[sketch.totalCities - 1]; // look up the number of different permutations from perms[]
@@ -53,6 +28,7 @@ const s = (sketch) => {
     sketch.shortestDistScores = []; // list of the best route distances found
     sketch.routeCount = 0; // number of new 'best' routes found;
     sketch.permCount = 0; // counter to track permutations since beginning
+    sketch.routesPerSec = 0; // variable to track routes per second. used in the titles
     sketch.numPanesPerRow = 3; // initial # of solution panes per row. This changes as more solutions are found.
 
     sketch.bestRoutes = {
@@ -73,7 +49,7 @@ const s = (sketch) => {
     sketch.population = [];
     sketch.fitness = []; // make pop and fitness arrays into an object later with {pops:[{order: [0,1,2,3,4], fitness: 0.47}]
     sketch.popSize = 4000;
-    sketch.mSwapRate = .0125; // 0 = zero swaps, 1 = totalCities number of swaps
+    sketch.mSwapRate = 0.0125; // 0 = zero swaps, 1 = totalCities number of swaps
 
 
 
@@ -126,19 +102,22 @@ const s = (sketch) => {
         // Generate Populations
         genPop();
 
-    }
+    }; // sketch.setup()
 
     ////////////////////////////////////////////////////////////////////////////////
     sketch.draw = () => {
         sketch.background(0, 18, 29);
 
-        // Genetic Algorithm
-        // there's going to be a lot of refactoring going on here.
-        // Calculate Fitness
-        calcFitness();
-        // Normalize Fitness
-        normFitness();
-        nextGen();
+        if (sketch.play) {
+            // Genetic Algorithm
+            // there's going to be a lot of refactoring going on here.
+            // Calculate Fitness
+            calcFitness();
+            // Normalize Fitness
+            normFitness();
+            nextGen();
+            sketch.permCount++;
+        }
 
         //Create a new array of cities in the current order for this permutation
         // Brute Force
@@ -171,7 +150,7 @@ const s = (sketch) => {
         // renderCurrShortestRoute(shortestDistOrder);
         // Random and Brute Force
         renderCurrShortestRoute(sketch.bestRoutes.routes[sketch.bestRoutes.routes.length - 1].order);
-        renderNewRouteAttempt(currGenShortestDistOrder);
+        renderNewRouteAttempt(sketch.currGenShortestDistOrder);
 
         renderBestRoutePanes();
         renderBestRouteChart();
@@ -185,13 +164,16 @@ const s = (sketch) => {
         // } else {
         //     noLoop();
         // }
-        sketch.permCount++;
-    }
-}
+    }; // sketch.draw()
+
+
+}; // const s 
+
+let p = new p5(s);
 
 
 ////////////////////////////////////////////////////////////////////////////////
-function renderTitles() {
+let renderTitles = function () {
     //Title
     p.noStroke();
     p.fill(199);
@@ -208,12 +190,15 @@ function renderTitles() {
     // let s = pctComplete < 0.001 ? "> 0.01" : pctComplete.toFixed(2);
     // Brute Force
     // text("Checking " + totalPerms + " different combinations using brute force lexicographic ordering.\n" + s + "% complete.\n" + Math.floor(permCount / (millis() / 1000)) + " routes per second.", 11, lDims.currBestY1 - (textAscent() * 2) - 1);
-    p.text(numberWithCommas(p.permCount) + " combinations tested at " + Math.floor(p.permCount / (p.millis() / 1000)) + " routes/second.\nMutation Rate of 0.0125% on a Generational Population Size of 2000.", 11, p.lDims.currBestY1 - (p.textAscent() * 2) - 1);
+    if(p.play){ // adding this condition so that the routes per second calculation stops based on play/pause variable.
+        p.routesPerSec = Math.floor(p.permCount / (p.millis() / 1000));
+    } // if p.play
+    p.text(numberWithCommas(p.permCount) + " combinations tested at " + p.routesPerSec + " routes/second.\nMutation Rate of 0.0125% on a Generational Population Size of 2000.", 11, p.lDims.currBestY1 - (p.textAscent() * 2) - 1);
     // text("Mutation Rate: 0.0125%. \nGenerational Population Size: 2000.", 11, lDims.currBestY1 - (textAscent() * 1) + 3);
-}
+};
 
 
-function renderCurrShortestRoute(csrArr) {
+let renderCurrShortestRoute = function (csrArr) {
     // Draw the current shortest path
     p.beginShape();
     p.stroke(199, 0, 199);
@@ -223,23 +208,23 @@ function renderCurrShortestRoute(csrArr) {
         p.vertex(csrArr[i].x, csrArr[i].y);
     }
     p.endShape();
-}
+};
 
 
-function renderNewRouteAttempt(ncoArr) {
+let renderNewRouteAttempt = function (ncoArr) {
     // draw new path attempts
     p.noFill();
     p.stroke(255, 123);
-    p.strokeWeight(.5);
+    p.strokeWeight(0.5);
     p.beginShape();
     for (let i = 0, length1 = ncoArr.length; i < length1; i++) {
         p.vertex(ncoArr[i].x, ncoArr[i].y);
     }
     p.endShape();
-}
+};
 
 
-function renderBestRoutePanes() {
+let renderBestRoutePanes = function () {
     let solPaneW = p.width / p.numPanesPerRow;
     let solPaneH = (p.lDims.panesY2 - p.lDims.panesY1) / p.numPanesPerRow;
 
@@ -282,7 +267,7 @@ function renderBestRoutePanes() {
         // Draw cities
         p.noFill();
         p.stroke(47, 123, 199, 199);
-        p.strokeWeight(.5);
+        p.strokeWeight(0.5);
         // rectMode(CORNER);
         // rect(0, 0, width, lDims.currBestY2 - lDims.currBestY1);
         p.rect(1, 1, p.width - 2, (p.lDims.currBestY2 - p.lDims.currBestY1) - 2);
@@ -292,12 +277,12 @@ function renderBestRoutePanes() {
         });
         p.pop();
     }
-}
+};
 
 
 // Show graph of the best solutions found over time.
 // maximum x-axis is the current permutation number.
-function renderBestRouteChart() {
+let renderBestRouteChart = function () {
     let maxDist = p.bestRoutes.routes[0].dist; // poor form, but overriding the global maxDist here
     p.beginShape();
     p.noFill();
@@ -330,7 +315,7 @@ function renderBestRouteChart() {
             // text(currDist, tcx, height - (height / 3) - cy + textAscent());
         }
         let sClr = (currDist === p.shortestDist ? p.color(199, 0, 199) : p.color(123, 199, 199));
-        let sWgt = (currDist === p.shortestDist ? 2.5 : .5);
+        let sWgt = (currDist === p.shortestDist ? 2.5 : 0.5);
         p.stroke(sClr);
         p.strokeWeight(sWgt);
         p.line(cx, p.lDims.solGraphY2 - p.textAscent(), cx, cy);
@@ -383,10 +368,10 @@ function renderBestRouteChart() {
         p.noStroke();
         // text("" + i + "%", scaleX, scaleY);
     }
-}
+};
 
 
-function renderCities(cArr) {
+let renderCities = function (cArr) {
     // Render the 'city' locations
     cArr.forEach(function (c, index) {
         p.strokeWeight(3);
@@ -394,7 +379,7 @@ function renderCities(cArr) {
         p.noFill();
         p.ellipse(c.x, c.y, 11, 11);
     });
-}
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -404,18 +389,18 @@ function renderCities(cArr) {
  * From https://stackoverflow.com/a/6274381/610406
  * Shuffles array in place
  */
-function fyShuffle(arr) {
+let fyShuffle = function (arr) {
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
-}
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Random Checking
-function randomizeArray(arr) {
+let randomizeArray = function (arr) {
     for (let i = arr.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         let tmp = arr[i];
@@ -423,24 +408,24 @@ function randomizeArray(arr) {
         arr[j] = tmp;
     }
     return arr;
-}
+};
 
 
-function setNewBestRoute(nbrObj) { // new best route Object
+let setNewBestRoute = function (nbrObj) { // new best route Object
     nbrObj.routeIdx = ++p.routeCount; //
     p.bestRoutes.routes.push(nbrObj);
-}
+};
 
 
-function swap(arr, i, j) {
+let swap = function (arr, i, j) {
     let tmp = arr[i];
     arr[i] = arr[j];
     arr[j] = tmp;
     return arr;
-}
+};
 
 
-function calcDist(arr) {
+let calcDist = function (arr) {
     let d = 0;
     for (let i = 0; i < arr.length - 1; i++) {
         // d += arr[i].dist(arr[i + 1]);
@@ -450,25 +435,24 @@ function calcDist(arr) {
         d += p.distLookup.get(getDistKey(arr[i], arr[i + 1]));
     }
     return d;
-}
+};
 
-
-function getDistKey(a, b) {
+let getDistKey = function (a, b) {
     a = Math.floor(a.x).toString() + Math.floor(a.y).toString();
     b = Math.floor(b.x).toString() + Math.floor(b.y).toString();
 
     let dKey = p.distLookup.has(a + "-" + b) ? (a + "-" + b) : (b + "-" + a);
     return dKey;
-}
+};
 
 
 
 // Brute Force
 // lexical ordering algorithm
-function nextLexOrder() {
+let nextLexOrder = function () {
     let largestI = -1;
-    for (let i = 0; i < order.length - 1; i++) {
-        if (order[i] < order[i + 1]) {
+    for (let i = 0; i < p.order.length - 1; i++) {
+        if (p.order[i] < p.order[i + 1]) {
             largestI = i;
         }
     }
@@ -476,37 +460,37 @@ function nextLexOrder() {
     if (largestI === -1) {
         //   noLoop();
         console.log('finished');
-        searching = false;
+        p.searching = false;
     }
 
     // Lex ordering Step 2
     let largestJ = -1;
-    for (let j = 0; j < order.length; j++) {
-        if (order[largestI] < order[j]) {
+    for (let j = 0; j < p.order.length; j++) {
+        if (p.order[largestI] < p.order[j]) {
             largestJ = j;
         }
     }
 
     // Lex ordering Step 3
-    swap(order, largestI, largestJ);
+    swap(p.order, largestI, largestJ);
 
-    let endArray = order.splice(largestI + 1);
+    let endArray = p.order.splice(largestI + 1);
     endArray.reverse();
-    order = order.concat(endArray);
-}
+    p.order = p.order.concat(endArray);
+};
 
 
-function reOrderCities(oArr, cArr) {
+let reOrderCities = function (oArr, cArr) {
     let newOrderArr = [];
     for (let i = 0; i < oArr.length; i++) {
         let nextCity = cArr[oArr[i]];
         newOrderArr.push(nextCity);
     }
     return newOrderArr;
-}
+};
 
 
-function precalcCityDistances(citiesArr) {
+let precalcCityDistances = function (citiesArr) {
     // Precalculate the distances between all the cities
     // Store the distances in a Map() object
     // format of key : value is as follows
@@ -527,26 +511,26 @@ function precalcCityDistances(citiesArr) {
         }
     }
     return distLookupTable;
-}
+};
 
 // Add comma's to large numbers
 // From: https://stackoverflow.com/a/2901298/610406
 const numberWithCommas = (x) => {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
+};
 
 
 
-function getNextOrdMagVal(n) {
+let getNextOrdMagVal = function (n) {
     // function from https://stackoverflow.com/a/23917134/610406
-    var order = Math.floor(Math.log(n) / Math.LN10 + 0.000000001); // because float math sucks like that
-    return Math.pow(10, order);
-}
+    let magOrd = Math.floor(Math.log(n) / Math.LN10 + 0.000000001); // because float math sucks like that
+    return Math.pow(10, magOrd);
+};
 
 
 
 // Exponential horizontal scale
-function powMap(incr, base, start1, stop1, start2, stop2) {
+let powMap = function (incr, base, start1, stop1, start2, stop2) {
     // base should be an inverse (eg 1/2), start1/stop1 are the value range, start2/stop2 are the output range
     let normX = p.map(incr, start1, stop1, 0, 1);
     let newX = p.pow(normX, base);
@@ -561,25 +545,47 @@ function powMap(incr, base, start1, stop1, start2, stop2) {
     // }
 
     //     return x;
-}
+};
 
 // factorial calcuator function
-function fact(num) {
+let fact = function (num) {
     let f = 1;
     for (let i = 2; i <= num; i++) {
         f = f * i;
     }
     return f;
-}
+};
 
 
 
-let p = new p5(s);
+p.keyTyped = function () {
+    if (p.key === 'p') {
+        if (p.play) {
+            p.play = false;
+            // p.noLoop();
+
+        } else {
+            p.play = true;
+            // p.loop();
+        }
+        console.log("play is now " + p.play);
+    } else if (p.key === 'b') {
+        //   value = 0;
+    }
+    // uncomment to prevent any default behavior
+    // return false;
+};
+
+
 
 // UI Component
 window.onload = function () {
     let gui = new dat.GUI();
     gui.add(p, "totalCities", 0, 199);
-    gui.add(p, "popSize", 0, 10000, 10);
-    gui.add(p, "mSwapRate", 0, 1, 0.025);
-}
+    gui.add(p, "popSize", 0, 10000, 500);
+    gui.add(p, "mSwapRate", 0, 1, 2.0 / 47.0);
+    let playPause = gui.add(p, "play").listen();
+    playPause.onFinishChange(function (v) {
+        p.play = (v) ? true : false;
+    });
+};
